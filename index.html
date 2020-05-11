@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 表單雙向數據綁定 -->
+      <input type="text" v-model="message" />
+      {{message}}
+    </div>
+    <script src="node_modules/vue/dist//vue.js"></script>
+    <script>
+      // 數據掛載在 vm 上
+      // Object.definePropery get 和 set
+      // vue 中 實現雙向綁定 1模版編譯 2數據劫持(觀察數據變化) 3Watcher
+      let vm = new Vue({
+        el: "#app",
+        data: {
+          message: "hello world",
+        },
+      });
+    </script>
+  </body>
+</html>
