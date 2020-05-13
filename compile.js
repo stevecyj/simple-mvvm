@@ -9,6 +9,7 @@ class Compile {
       // 2.編譯=>拿想要的元素節點 v-model 和 文件節點 {{}}
       this.compile(fragment);
       // 3.把編譯好的 fragment 再塞回到頁面
+      this.el.appendChild(fragment);
     }
   }
   // 輔助方法
@@ -27,13 +28,16 @@ class Compile {
     let attrs = node.attributes; //取出當前節點的屬性
     // console.log(attrs);
     Array.from(attrs).forEach((attr) => {
-      // 判斷屬性 name 是否包含 v-
+      // 判斷屬性 name 是否包含 v- //[v, model]
       let attrName = attr.name;
       if (this.isDirective(attrName)) {
         // 取到對應的值放到節點的中
         let expr = attr.value;
-        // node this.vm.$data expr
+        let [, type] = attrName.split("-"); //解構賦值
+        console.log(type);
+        // node this.vm.$data expr，種類： v-model, v-text, v-html
         // todo ......
+        CompileUtil[type](node, this.vm, expr);
       }
     });
   }
@@ -42,9 +46,10 @@ class Compile {
     let expr = node.textContent; //取文本中的內容
     let reg = /\{\{([^}]+)\}\}/g; //{{a}} {{b}} {{c}}
     // console.log(text);
-    if (reg.text(expr)) {
-      //node this.vm.$data expr
+    if (reg.test(expr)) {
+      //node this.vm.$data text
       // todo ......
+      CompileUtil["text"](node, this.vm, expr);
     }
   }
   compile(fragment) {
@@ -78,3 +83,33 @@ class Compile {
     return fragment; //記憶體中的節點
   }
 }
+CompileUtil = {
+  getVal(vm, expr) {
+    //取得實例上對應的數據
+    expr = expr.split("."); //[c,s,a,w,r,.....]，先轉成陣列
+    return expr.reduce((prev, next) => {
+      return prev[next];
+    }, vm.$data);
+  },
+  text(node, vm, expr) {
+    // 文本處理
+    // let updateFn = this.updater["textUpdater"];
+    // "message.a" => [message,a]
+    // updateFn && updateFn(node, this.getVal(vm, expr));
+  },
+  model(node, vm, expr) {
+    // 輸入框處理
+    let updateFn = this.updater["modelUpdater"];
+    updateFn && updateFn(node, this.getVal(vm, expr));
+  },
+  updater: {
+    // 文本更新
+    textUpdater(node, value) {
+      node.textContent = value;
+    },
+    // 輸入框更新
+    modelUpdater(node, value) {
+      node.value = value;
+    },
+  },
+};
