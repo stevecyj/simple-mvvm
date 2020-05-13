@@ -93,9 +93,12 @@ CompileUtil = {
   },
   text(node, vm, expr) {
     // 文本處理
-    // let updateFn = this.updater["textUpdater"];
-    // "message.a" => [message,a]
-    // updateFn && updateFn(node, this.getVal(vm, expr));
+    let updateFn = this.updater["textUpdater"];
+    // "message.a" => hello world, I fail the city
+    let value = expr.replace(/\{\{([^}]+)\}\}/g, (...arguments) => {
+      return arguments[1];
+    });
+    updateFn && updateFn(node, value);
   },
   model(node, vm, expr) {
     // 輸入框處理
