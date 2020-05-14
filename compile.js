@@ -92,14 +92,18 @@ CompileUtil = {
       return prev[next];
     }, vm.$data);
   },
+  getTextVal(vm, expr) {
+    //取得文本編譯後的結果
+    return expr.replace(/\{\{([^}]+)\}\}/g, (...arguments) => {
+      return this.getVal(vm, arguments[1]);
+    });
+  },
   text(node, vm, expr) {
     // 文本處理
     let updateFn = this.updater["textUpdater"];
     // console.log(expr);
     // 把"message.a" 替換成=> hello world, just do it
-    let value = expr.replace(/\{\{([^}]+)\}\}/g, (...arguments) => {
-      return this.getVal(vm, arguments[1]);
-    });
+    let value = this.getTextVal(vm, expr);
     console.log(value);
     updateFn && updateFn(node, value);
   },
