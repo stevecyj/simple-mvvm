@@ -7,7 +7,7 @@
   </head>
   <body>
     <div id="app">
-      <input type="text" v-model="message" />
+      <input type="text" v-model="message.a" />
       <div>{{message.a}}</div>
       <ul>
         <li></li>
@@ -20,7 +20,7 @@
       let vm = new MVVM({
         el: "#app",
         data: {
-          message: "hello world, just do it",
+          message: { a: "hello world, just do it" },
         },
       });
     </script>

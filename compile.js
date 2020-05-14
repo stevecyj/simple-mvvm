@@ -34,7 +34,7 @@ class Compile {
         // 取到對應的值放到節點的中
         let expr = attr.value;
         let [, type] = attrName.split("-"); //解構賦值
-        console.log(type);
+        // console.log(type);
         // node this.vm.$data expr，種類： v-model, v-text, v-html
         // todo ......
         CompileUtil[type](node, this.vm, expr);
@@ -88,16 +88,19 @@ CompileUtil = {
     //取得實例上對應的數據
     expr = expr.split("."); //[c,s,a,w,r,.....]，先轉成陣列
     return expr.reduce((prev, next) => {
+      // vm.$data.a
       return prev[next];
     }, vm.$data);
   },
   text(node, vm, expr) {
     // 文本處理
     let updateFn = this.updater["textUpdater"];
-    // "message.a" => hello world, I fail the city
+    // console.log(expr);
+    // 把"message.a" 替換成=> hello world, just do it
     let value = expr.replace(/\{\{([^}]+)\}\}/g, (...arguments) => {
-      return arguments[1];
+      return this.getVal(vm, arguments[1]);
     });
+    console.log(value);
     updateFn && updateFn(node, value);
   },
   model(node, vm, expr) {
