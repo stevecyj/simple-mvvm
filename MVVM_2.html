@@ -34,6 +34,9 @@
           this.update();
         }
       };
+      ViewModel.prototype.getVal = function () {
+        return this.data;
+      };
       ViewModel.prototype.update = function () {
         //更新方法，可以將節點依次渲染成想要的結果
         this.nodes.forEach((node) => {
@@ -74,6 +77,9 @@
                   //找出 input
                   // console.log(node);
                   obj[value].bindNode(node); //input, 輸入框
+                  node.addEventListener("input", function (e) {
+                    obj[value].setVal(e.target.value);
+                  });
                 }
               });
             }
