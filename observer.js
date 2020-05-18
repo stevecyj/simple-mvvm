@@ -18,6 +18,7 @@ class Observer {
   defineReactive(obj, key, value) {
     // 在取得某個值的時候，(想做跳出彈跳視窗的效果)
     let that = this;
+    let dep = new Dep(); //每個變化的數據，都會對應一個陣列，這個陣列存放所有更新的操作
     Object.defineProperty(obj, key, {
       enumerable: true,
       configurable: true,
@@ -25,6 +26,7 @@ class Observer {
         //取值時調用的方法
         // todo......
         // alert("數據攔截");
+        Dep.target && dep.addSub(Dep.target); //如果有就放進去
         return value;
       },
       set(newValue) {
@@ -33,8 +35,21 @@ class Observer {
           //這裡的 this 不是實例
           that.observe(newValue); //如果是物件，繼續攔截
           value = newValue;
+          dep.notify(); //通知所有人，數據更新了
         }
       },
     });
+  }
+}
+class Dep {
+  constructor() {
+    // 訂閱的陣列
+    this.subs = [];
+  }
+  addSub(watcher) {
+    this.subs.push(watcher);
+  }
+  notify() {
+    this.subs.forEach((watcher) => watcher.update());
   }
 }

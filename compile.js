@@ -99,17 +99,29 @@ CompileUtil = {
     });
   },
   text(node, vm, expr) {
-    // 文本處理
+    // 文本處理,文本取到值，編譯後更新畫面
     let updateFn = this.updater["textUpdater"];
     // console.log(expr);
     // 把"message.a" 替換成=> hello world, just do it
     let value = this.getTextVal(vm, expr);
     console.log(value);
+    // {{a}} {{b}} 先監控 a, 再監控 b
+    expr.replace(/\{\{([^}]+)\}\}/g, (...arguments) => {
+      new Watcher(vm, arguments[1], (newValue) => {
+        // 如果數據變化了，文本節點需要重新取得依賴的數據，更新文本中的內容
+        updateFn && updateFn(node, this.getTextVal(vm, expr));
+      });
+    });
     updateFn && updateFn(node, value);
   },
   model(node, vm, expr) {
-    // 輸入框處理
+    // 輸入框處理，取得元素的值，編譯後更新畫面
     let updateFn = this.updater["modelUpdater"];
+    // 這裡要加一個監控，數據變化時，調用這個 watcher 的 callback
+    new Watcher(vm, expr, (newValue) => {
+      // 當值變化後，會調用 cb 將新的值傳遞過來
+      updateFn && updateFn(node, this.getVal(vm, expr));
+    });
     updateFn && updateFn(node, this.getVal(vm, expr));
   },
   updater: {
