@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      <input type="text" st-model="msg" />
+      <input type="text" st-model="name" />
+      <br />
+      {{msg}} {{name}}
+      <div>我是標題</div>
+      <div>{{name}}</div>
+    </div>
+    <script>
+      let obj = {
+        msg: new ViewModel("大吉大利，今晚吃雞"),
+        name: new ViewModel("Steve"),
+      };
+      function ViewModel(data) {
+        this.data = data; //this.data 代表當前的值
+        this.nodes = []; //放節點的陣列
+      }
+      ViewModel.prototype.bindNode = function (node) {
+        //將節點和數據綁定在一起
+        this.nodes.push(node);
+        // console.log(this.nodes);
+      };
+      ViewModel.prototype.setVal = function (newVal) {
+        if (newVal !== this.data) {
+          this.data = newVal;
+          this.update();
+        }
+      };
+      ViewModel.prototype.update = function () {
+        //更新方法，可以將節點依次渲染成想要的結果
+        this.nodes.forEach((node) => {
+          if (node.nodeType === 1) {
+            node.value = this.data;
+          } else {
+            //{{name}} {{msg}}
+            node.textContent = node.my.replace(/\{\{([^}]*)\}\}/g, function () {
+              return obj[arguments[1]].data;
+            });
+          }
+        });
+      };
+
+      // 將數據和節點掛載在一起
+      function compile(el) {
+        let ele = document.querySelector(el);
+        //不要直接操作節點，可能會導致頁面回流(reflow)、重新渲染
+        //先拿到記憶體處理再放回去
+        let fragment = document.createDocumentFragment();
+        //取得 ele 下的第一個元素，直到取完為止，並將內容放到文檔碎片中
+        let child;
+        while ((child = ele.firstChild)) {
+          fragment.appendChild(child);
+        }
+        // fragment nodeList 是類陣列, 把它轉成陣列, Array.prototype.slice.call
+        function replace(fragment) {
+          //用來遞迴判斷是否有我們要的標籤, input 或 大括號
+          Array.from(fragment.childNodes).forEach((node) => {
+            // 判斷 node 節點是標籤還是文本
+            if (node.nodeType === 1) {
+              //元素節點
+              //字段： type="text", st-model="a"
+              Array.from(node.attributes).forEach((attr) => {
+                // console.dir(attr);
+                let { name, value } = attr;
+                if (name.includes("st-")) {
+                  //找出 input
+                  // console.log(node);
+                  obj[value].bindNode(node); //input, 輸入框
+                }
+              });
+            }
+            let reg = /\{\{([^}]*)\}\}/g; //判斷有沒有 {{}} 元素
+            let text = node.textContent;
+            if (node.nodeType === 3 && reg.test(text)) {
+              //自定義屬性，保留原有的內容
+              node.my = text;
+              //文本節點
+              //{{name}}, {{msg}}
+              // console.dir(node);
+              // console.log(node);
+              text.replace(reg, function () {
+                obj[arguments[1]].bindNode(node);
+              });
+            }
+            if (node.childNodes.length) {
+              replace(node); // 如果有巢狀關係，繼續往下查
+            }
+          });
+        }
+
+        replace(fragment); //編譯後，要調用 update 方法
+        Object.keys(obj).forEach((key) => {
+          //{msg:new ViewModel(),name} => [msg,name]
+          obj[key].update();
+        });
+        //todo, 在這裡處理，避免頁面回流
+        // input 取得，加上事件。{{}} 做替換動作。
+        ele.appendChild(fragment);
+      }
+      compile("#app");
+    </script>
+  </body>
+</html>
