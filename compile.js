@@ -19,7 +19,7 @@ class Compile {
 
   // 是否指令
   isDirective(name) {
-    return name.includes("v-");
+    return name.includes("st-");
   }
 
   // 核心方法
@@ -114,6 +114,16 @@ CompileUtil = {
     });
     updateFn && updateFn(node, value);
   },
+  setVal(vm, expr, value) {
+    //[message, a]，取值取到 a 時要賦值
+    expr = expr.split(".");
+    return expr.reduce((prev, next, currentIndex) => {
+      if (currentIndex === expr.length - 1) {
+        return (prev[next] = value);
+      }
+      return prev[next];
+    }, vm.$data);
+  },
   model(node, vm, expr) {
     // 輸入框處理，取得元素的值，編譯後更新畫面
     let updateFn = this.updater["modelUpdater"];
@@ -121,6 +131,10 @@ CompileUtil = {
     new Watcher(vm, expr, (newValue) => {
       // 當值變化後，會調用 cb 將新的值傳遞過來
       updateFn && updateFn(node, this.getVal(vm, expr));
+    });
+    node.addEventListener("input", (e) => {
+      let newValue = e.target.value;
+      this.setVal(vm, expr, newValue);
     });
     updateFn && updateFn(node, this.getVal(vm, expr));
   },
